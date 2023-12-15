@@ -6,7 +6,7 @@ from torch.optim import AdamW
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.nn import CrossEntropyLoss
 from my_datautils import FakeNews_Dataset, FewShotSampler_fakenewsnet, FewShotSampler_weibo
-from mymodels import Adapter_Origin
+from mymodels import Adapter_Origin, Adapter_V1
 from myconfig import Config
 from cn_clip.clip import load_from_name
 
@@ -15,7 +15,7 @@ config = Config()
 data_name = config.dataset_name
 
 # weibo: adapter_origin: 0.617@2shots; 0.722@16shots; 0.797@100shots
-# goss:
+# goss: adapter_origin: 0.612@2shots; 0,567@16shots; adapter_v1: 0.673@16shots
 # poli:
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -46,10 +46,11 @@ else:
     test_loader = DataLoader(test_dataset, batch_size=96, shuffle=False)
 
 
-adapter = Adapter_Origin(num_classes=2).to(device)
+# adapter = Adapter_Origin(num_classes=2).to(device)
+adapter = Adapter_V1(num_classes=2).to(device)
 EPOCH = 20
 optimizer = AdamW(adapter.parameters(), lr=1e-3, eps=1e-4)
-scheduler = CosineAnnealingLR(optimizer, EPOCH * len(train_loader))
+# scheduler = CosineAnnealingLR(optimizer, EPOCH * len(train_loader))
 loss_func = CrossEntropyLoss()
 best_test_acc_in_epoch, patience_count, patience = 0, 0, 3
 
@@ -58,22 +59,23 @@ for epoch in range(EPOCH):
     print("EPOCH: {} ".format(epoch + 1))
     for txt, img, label in tqdm.tqdm(train_loader):
         adapter.train()
-        img_feat = model.encode_image(img)
-        txt_feat = model.encode_text(txt)
+        img_feat_0 = model.encode_image(img)
+        txt_feat_0 = model.encode_text(txt)
 
         # label = label
-        img_feat = img_feat / img_feat.norm(dim=-1, keepdim=True)
-        txt_feat = txt_feat / txt_feat.norm(dim=-1, keepdim=True)
+        img_feat = img_feat_0 / img_feat_0.norm(dim=-1, keepdim=True)
+        txt_feat = txt_feat_0 / txt_feat_0.norm(dim=-1, keepdim=True)
 
         all_feat = torch.cat((img_feat, txt_feat), dim=-1).to(device, torch.float32)
 
-        logits = adapter(all_feat)
+        _, _ ,logits = adapter(txt_feat_0.to(device, torch.float32),
+                               img_feat_0.to(device, torch.float32), all_feat)
         loss = loss_func(logits, label)
 
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        scheduler.step()
+        # scheduler.step()
         end_time = time.time()
 
 
@@ -83,15 +85,16 @@ for epoch in range(EPOCH):
     print("Start to eval: ")
     with torch.no_grad():
         for txt, img, label in tqdm.tqdm(test_loader):
-            img_feat = model.encode_image(img)
-            txt_feat = model.encode_text(txt)
+            img_feat_1 = model.encode_image(img)
+            txt_feat_1 = model.encode_text(txt)
 
-            img_feat = img_feat / img_feat.norm(dim=-1, keepdim=True)
-            txt_feat = txt_feat / txt_feat.norm(dim=-1, keepdim=True)
+            img_feat = img_feat_1 / img_feat_1.norm(dim=-1, keepdim=True)
+            txt_feat = txt_feat_1 / txt_feat_1.norm(dim=-1, keepdim=True)
 
             all_feat = torch.cat((img_feat, txt_feat), dim=-1).to(device, torch.float32)
             adapter.eval()
-            eval_logits = adapter(all_feat)
+            _, _, eval_logits = adapter(txt_feat_1.to(device, torch.float32),
+                                  img_feat_1.to(device, torch.float32), all_feat)
 
             predictions = torch.argmax(torch.softmax(eval_logits, dim=1), dim=-1).cpu().numpy()
             label = label.cpu().numpy()

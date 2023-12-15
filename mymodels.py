@@ -56,7 +56,7 @@ class Adapter_V1(torch.nn.Module):
         self.fc_txt = nn.Linear(512, num_classes)
         self.fc_img = nn.Linear(512, num_classes)
         self.cross_attention = CrossAttention(512)
-        self.fc_meta = nn.Linear(num_classes * 4, num_classes)
+        self.fc_meta = nn.Linear(num_classes * 5, num_classes)
 
 
     def forward(self, txt, img, fused):
@@ -68,10 +68,8 @@ class Adapter_V1(torch.nn.Module):
         ti_attn_out = self.cross_attention(txt, img)
         it_attn_out = self.cross_attention(img, txt)
 
-        attn_out = ti_attn_out + it_attn_out
-
         # 合并来自基学习器的输出
-        combined_out = torch.cat((txt_out, img_out, fused_out, attn_out), dim=1)
+        combined_out = torch.cat((txt_out, img_out, fused_out, it_attn_out, ti_attn_out), dim=1)
 
         meta_out = self.fc_meta(combined_out)
 

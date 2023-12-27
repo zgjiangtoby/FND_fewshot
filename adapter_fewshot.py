@@ -1,3 +1,5 @@
+import os.path
+
 import torch, tqdm, clip, time
 from torch.utils.data import DataLoader
 from sklearn.metrics import classification_report
@@ -14,7 +16,7 @@ torch.manual_seed(0)
 config = Config()
 data_name = config.dataset_name
 
-# weibo: adapter_origin: 0.617@2shots; 0.722@16shots; 0.797@100shots
+# weibo: : 0.617@2shots; 0.722@16shots; 0.797@100shots
 # goss: adapter_origin: 0.612@2shots; 0,567@16shots; adapter_v1: 0.673@16shots
 # poli:
 
@@ -30,7 +32,7 @@ if data_name == "weibo":
     train_dataset = train_sampler.get_train_dataset()
 
     train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=96, shuffle=False)
+    test_loader = DataLoader(test_dataset, batch_size=512, shuffle=False)
 
 else:
     print("Loading OpenAI CLIP.....")
@@ -43,7 +45,7 @@ else:
     train_dataset, test_dataset = sampler.get_train_val_datasets()
     # 创建 DataLoader
     train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=96, shuffle=False)
+    test_loader = DataLoader(test_dataset, batch_size=512, shuffle=False)
 
 
 # adapter = Adapter_Origin(num_classes=2).to(device)
@@ -68,8 +70,9 @@ for epoch in range(EPOCH):
 
         all_feat = torch.cat((img_feat, txt_feat), dim=-1).to(device, torch.float32)
 
-        _, _ ,logits = adapter(txt_feat_0.to(device, torch.float32),
+        _, _, logits = adapter(txt_feat_0.to(device, torch.float32),
                                img_feat_0.to(device, torch.float32), all_feat)
+
         loss = loss_func(logits, label)
 
         optimizer.zero_grad()
@@ -110,6 +113,11 @@ for epoch in range(EPOCH):
         best_test_acc_in_epoch = epoch_acc
         print("Save best acc at EPOCH {}".format(epoch + 1))
         patience_count = 0
+        if not os.path.exists(config.save_path):
+            os.makedirs(config.save_path)
+        print("saving best model at Epoch {} | Accuracy {}".format(epoch+1, epoch_acc))
+        torch.save(adapter.state_dict(),
+                   config.save_path + "/adapter_shot{}@{}.pt".format(config.few_shot_per_class, config.dataset_name))
     else:
         patience_count += 1
 

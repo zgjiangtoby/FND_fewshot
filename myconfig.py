@@ -15,4 +15,9 @@ class Config:
         train_csv = "datasets/fakenewsnet/gossipcop_multi.csv"
         img_path = "datasets/fakenewsnet/goss_img_all/"
 
-    few_shot_per_class = 2
+    pred_csv = "datasets/fakenewsnet/test_fake.csv"
+    pred_img_path = "datasets/fakenewsnet/poli_img_all/"
+
+    save_path = "./saved_adapter"
+    version = 1
+    few_shot_per_class = 100

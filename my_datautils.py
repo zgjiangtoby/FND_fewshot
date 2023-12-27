@@ -19,10 +19,10 @@ class FakeNews_Dataset(Dataset):
         if config.dataset_name == "weibo":
             model, self.preprocess = load_from_name("ViT-B-16", device=self.device)
         else:
-            print("Loading OpenAI CLIP.....")
             model, self.preprocess = clip.load('ViT-B/32', self.device, jit=False)
         with open(data_path, 'r') as inf:
-            self.data = pd.read_csv(inf)
+            self.data = pd.read_csv(inf, header=None)
+
 
     def __len__(self):
         return len(self.data)
@@ -31,6 +31,7 @@ class FakeNews_Dataset(Dataset):
         img = self.data.iloc[idx][1] + ".jpg"
         label = self.data.iloc[idx][2]
         txt = self.data.iloc[idx][0]
+
         if config.dataset_name == "weibo":
             txt = cn_clip.clip.tokenize(txt).squeeze().to(self.device)
             img = self.preprocess(Image.open(self.img_path + img)).to(self.device)

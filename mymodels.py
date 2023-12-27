@@ -23,8 +23,9 @@ class CrossAttention(nn.Module):
         query = self.query(txt_feat)
         key = self.key(img_feat)
         value = self.value(img_feat)
-
+        # print(key.size())
         # 计算注意力分数
+
         attn_scores = torch.matmul(query, key.transpose(-2, -1))
         attn_scores = F.softmax(attn_scores, dim=-1)
 
@@ -32,7 +33,7 @@ class CrossAttention(nn.Module):
         attn_output = torch.matmul(attn_scores, value)
         attn_output = self.cross(attn_output)
 
-        return attn_output
+        return attn_scores, attn_output
 
 class ContrastiveLoss(nn.Module):
     def __init__(self, margin=1.0):
@@ -65,8 +66,8 @@ class Adapter_V1(torch.nn.Module):
         img_out = self.fc_img(img)
         fused_out = self.fc(fused)
         # 应用交叉注意力机制
-        ti_attn_out = self.cross_attention(txt, img)
-        it_attn_out = self.cross_attention(img, txt)
+        attn_ti, ti_attn_out = self.cross_attention(txt, img)
+        attn_it, it_attn_out = self.cross_attention(img, txt)
 
         # 合并来自基学习器的输出
         combined_out = torch.cat((txt_out, img_out, fused_out, it_attn_out, ti_attn_out), dim=1)

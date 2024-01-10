@@ -12,8 +12,8 @@ from mymodels import Adapter_Origin, Adapter_V1
 from myconfig import Config
 from cn_clip.clip import load_from_name
 
-torch.manual_seed(0)
 config = Config()
+torch.manual_seed(config.seed)
 data_name = config.dataset_name
 
 # weibo: : 0.617@2shots; 0.722@16shots; 0.797@100shots

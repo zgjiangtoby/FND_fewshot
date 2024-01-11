@@ -44,9 +44,10 @@ class FakeNews_Dataset(Dataset):
 
 
 class FewShotSampler_weibo:
-    def __init__(self, dataset, few_shot_per_class):
+    def __init__(self, dataset, few_shot_per_class, seed):
         self.dataset = dataset
         self.few_shot_per_class = few_shot_per_class
+        self.seed = seed
 
     def get_train_dataset(self):
         indices_per_class = defaultdict(list)
@@ -58,17 +59,17 @@ class FewShotSampler_weibo:
 
         # 对于每个类别，随机选择few_shot_per_class个样本作为训练集
         for label, indices in indices_per_class.items():
-            random.shuffle(indices)
+            random.Random(self.seed).shuffle(indices)
             train_indices.extend(indices[:self.few_shot_per_class])
 
         train_dataset = Subset(self.dataset, train_indices)
 
         return train_dataset
 class FewShotSampler_fakenewsnet:
-    def __init__(self, dataset, few_shot_per_class):
+    def __init__(self, dataset, few_shot_per_class, seed):
         self.dataset = dataset
         self.few_shot_per_class = few_shot_per_class
-
+        self.seed = seed
     def get_train_val_datasets(self):
         indices_per_class = defaultdict(list)
         for idx in range(len(self.dataset)):
@@ -80,7 +81,7 @@ class FewShotSampler_fakenewsnet:
 
         # 对于每个类别，随机选择few_shot_per_class个样本作为训练集
         for label, indices in indices_per_class.items():
-            random.shuffle(indices)
+            random.Random(self.seed).shuffle(indices)
             train_indices.extend(indices[:self.few_shot_per_class])
             val_indices.extend(indices[self.few_shot_per_class:])
 

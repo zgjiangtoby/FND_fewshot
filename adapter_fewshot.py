@@ -153,5 +153,5 @@ if __name__ == "__main__":
                 break  # 跳出训练循环
 
         print("best_acc found at: ", best_test_acc_in_epoch)
-        with open(args.save_path + "/adapter_shot{}@{}.txt".format(args.shot, args.dataset_name), 'w') as outf:
+        with open(args.save_path + "/seed{}_shot{}@{}.txt".format(args.seed, args.shot, args.dataset_name), 'w') as outf:
             outf.write(str(round(best_test_acc_in_epoch, 4)))

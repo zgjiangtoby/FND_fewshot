@@ -12,14 +12,13 @@ from myconfig import Config
 ## 1 fake, 0 real
 config = Config()
 class FakeNews_Dataset(Dataset):
-    def __init__(self, data_path, img_path ):
+    def __init__(self, model, preprocess, data_path, img_path, dataset_name):
 
         self.img_path = img_path
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        if config.dataset_name == "weibo":
-            model, self.preprocess = load_from_name("ViT-B-16", device=self.device)
-        else:
-            model, self.preprocess = clip.load('ViT-B/32', self.device, jit=False)
+        self.model = model
+        self.preprocess = preprocess
+        self.dataset_name = dataset_name
         with open(data_path, 'r') as inf:
             self.data = pd.read_csv(inf, header=None)
 
@@ -32,7 +31,7 @@ class FakeNews_Dataset(Dataset):
         label = self.data.iloc[idx][2]
         txt = self.data.iloc[idx][0]
 
-        if config.dataset_name == "weibo":
+        if self.dataset_name == "weibo":
             txt = cn_clip.clip.tokenize(txt).squeeze().to(self.device)
             img = self.preprocess(Image.open(self.img_path + img)).to(self.device)
         else:
@@ -48,7 +47,6 @@ class FewShotSampler_weibo:
         self.dataset = dataset
         self.few_shot_per_class = few_shot_per_class
         self.seed = seed
-
     def get_train_dataset(self):
         indices_per_class = defaultdict(list)
         for idx in range(len(self.dataset)):

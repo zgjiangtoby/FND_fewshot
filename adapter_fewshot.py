@@ -49,20 +49,20 @@ if __name__ == "__main__":
         if data_name == "weibo":
             print("Loading Chinese CLIP.....")
             model, preprocess = load_from_name("ViT-B-16", device=device)
-            train_dataset = FakeNews_Dataset(args.train_csv, args.img_path)
-            test_dataset = FakeNews_Dataset(args.test_csv, args.img_path)
+            train_dataset = FakeNews_Dataset(model, preprocess, args.train_csv, args.img_path, data_name)
+            test_dataset = FakeNews_Dataset(model, preprocess, args.test_csv, args.img_path, data_name)
 
             train_sampler = FewShotSampler_weibo(train_dataset, args.shot, seed)
             train_dataset = train_sampler.get_train_dataset()
             torch.manual_seed(args.seed)
 
-            train_loader = DataLoader(train_dataset, batch_size=1, shuffle=False, worker_init_fn=lambda seed: np.random.seed(seed))
+            train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, worker_init_fn=lambda seed: np.random.seed(seed))
             test_loader = DataLoader(test_dataset, batch_size=512, shuffle=False)
 
         else:
             print("Loading OpenAI CLIP.....")
             model, preprocess = clip.load('ViT-B/32', device, jit=False)
-            train_dataset = FakeNews_Dataset(args.train_csv, args.img_path)
+            train_dataset = FakeNews_Dataset(model, preprocess, args.train_csv, args.img_path, data_name)
 
             sampler = FewShotSampler_fakenewsnet(train_dataset, args.shot, seed)
 
@@ -70,7 +70,7 @@ if __name__ == "__main__":
             train_dataset, test_dataset = sampler.get_train_val_datasets()
             # 创建 DataLoader
             torch.manual_seed(args.seed)
-            train_loader = DataLoader(train_dataset, batch_size=1, shuffle=False, worker_init_fn=lambda seed: np.random.seed(seed))
+            train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, worker_init_fn=lambda seed: np.random.seed(seed))
             test_loader = DataLoader(test_dataset, batch_size=512, shuffle=False)
 
 
@@ -86,9 +86,11 @@ if __name__ == "__main__":
 
             print("EPOCH: {} ".format(epoch + 1))
             for txt, img, label in tqdm.tqdm(train_loader):
-
+                print(txt)
+                print(label)
                 adapter.train()
                 img_feat_0 = model.encode_image(img)
+                print(img_feat_0.size())
                 txt_feat_0 = model.encode_text(txt)
 
                 # label = label

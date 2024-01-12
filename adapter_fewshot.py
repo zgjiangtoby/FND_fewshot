@@ -86,11 +86,9 @@ if __name__ == "__main__":
 
             print("EPOCH: {} ".format(epoch + 1))
             for txt, img, label in tqdm.tqdm(train_loader):
-                print(txt)
-                print(label)
+
                 adapter.train()
                 img_feat_0 = model.encode_image(img)
-                print(img_feat_0.size())
                 txt_feat_0 = model.encode_text(txt)
 
                 # label = label

@@ -144,7 +144,7 @@ if __name__ == "__main__":
                     os.makedirs(args.save_path)
                 print("saving best model at Epoch {} | Accuracy {}".format(epoch+1, epoch_acc))
                 torch.save(adapter.state_dict(),
-                           args.save_path + "/adapter_shot{}@{}.pt".format(args.shot, args.dataset_name))
+                           args.save_path + "/seed{}_adapter_shot{}@{}.pt".format(args.seed, args.shot, args.dataset_name))
             else:
                 patience_count += 1
 

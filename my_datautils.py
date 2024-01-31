@@ -7,10 +7,10 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 from cn_clip.clip import load_from_name
-from myconfig import Config
+
 
 ## 1 fake, 0 real
-config = Config()
+
 class FakeNews_Dataset(Dataset):
     def __init__(self, model, preprocess, data_path, img_path, dataset_name):
 
@@ -153,11 +153,6 @@ def load_from_csv(csv_path, img_path):
 
     return all_txt, all_img, all_label
 
-# weibo_2_csv("../datasets/weibo/tweets/train_rumor.txt",
-#             "../datasets/weibo/rumor_images/",
-#              "../datasets/weibo/tweets/train_nonrumor.txt",
-#             "../datasets/weibo/nonrumor_images/",
-#             "../datasets/weibo/weibo_train.csv",
-#             )
+
 
 

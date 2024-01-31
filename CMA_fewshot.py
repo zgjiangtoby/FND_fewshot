@@ -9,7 +9,6 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.nn import CrossEntropyLoss
 from my_datautils import FakeNews_Dataset, FewShotSampler_fakenewsnet, FewShotSampler_weibo
 from mymodels import Adapter_Origin, Adapter_V1
-from myconfig import Config
 from cn_clip.clip import load_from_name
 
 device = "cuda" if torch.cuda.is_available() else "cpu"

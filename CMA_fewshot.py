@@ -65,9 +65,7 @@ if __name__ == "__main__":
 
             sampler = FewShotSampler_fakenewsnet(train_dataset, args.shot, seed)
 
-            # 分割数据集
             train_dataset, test_dataset = sampler.get_train_val_datasets()
-            # 创建 DataLoader
             torch.manual_seed(args.seed)
             train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, worker_init_fn=lambda seed: np.random.seed(seed))
             test_loader = DataLoader(test_dataset, batch_size=512, shuffle=False)
@@ -149,7 +147,7 @@ if __name__ == "__main__":
 
             if patience_count >= patience:
                 print("Early stopping triggered")
-                break  # 跳出训练循环
+                break  
 
         print("best_acc found at: ", best_test_acc_in_epoch)
         with open(args.save_path + "/seed{}_shot{}@{}.txt".format(args.seed, args.shot, args.dataset_name), 'w') as outf:

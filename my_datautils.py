@@ -55,7 +55,6 @@ class FewShotSampler_weibo:
 
         train_indices = []
 
-        # 对于每个类别，随机选择few_shot_per_class个样本作为训练集
         for label, indices in indices_per_class.items():
             random.Random(self.seed).shuffle(indices)
             train_indices.extend(indices[:self.few_shot_per_class])
@@ -77,7 +76,6 @@ class FewShotSampler_fakenewsnet:
         train_indices = []
         val_indices = []
 
-        # 对于每个类别，随机选择few_shot_per_class个样本作为训练集
         for label, indices in indices_per_class.items():
             random.Random(self.seed).shuffle(indices)
             train_indices.extend(indices[:self.few_shot_per_class])
@@ -98,7 +96,6 @@ def sim_cal(txt_path, img_path):
     with open(txt_path, 'r') as inf:
         content = inf.readlines()
         for i in tqdm.tqdm(range(0, len(content), 3)):
-            # 获取连续的三行
             three_lines = content[i:i + 3]
             if len(three_lines[2].strip()) != 0:  # remove empty text
                 urls = three_lines[1].split("|")
